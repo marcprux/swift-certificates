@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import SwiftASN1
 
 /// A representation of an X.509 certificate object.
@@ -65,6 +69,7 @@ import SwiftASN1
 /// An instance of ``Certificate`` can be created from ``Security/SecCertificate`` (from the ``Security`` framework) with ``Certificate/init(_:)``.
 /// The opposite, that is, creating an instance of ``Security/SecCertificate`` from ``Certificate``, can be achieved with ``Security/SecCertificate/makeWithCertificate(_:)``.
 #endif
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct Certificate {
     /// The X.509 version of this certificate.
     ///
@@ -209,6 +214,54 @@ public struct Certificate {
         self.signatureBytes = try DER.Serializer.serialized(element: ASN1BitString(self.signature))[...]
     }
 
+    /// Construct a certificate from constituent parts, signed by an issuer key.
+    ///
+    /// This API can be used to construct a ``Certificate`` directly, without an intermediary
+    /// Certificate Signing Request. The ``signature-swift.property`` for this certificate will be produced
+    /// automatically, using `issuerPrivateKey`.
+    ///
+    /// A default signature algorithm to use for the signature of this certificate is automatically chosen based
+    /// on the type of the issuer's private key.
+    ///
+    /// This API can be used to construct a self-signed key by passing the private key for `publicKey` as the
+    /// `issuerPrivateKey` argument.
+    ///
+    /// - Parameters:
+    ///   - version: The X.509 specification version for this certificate.
+    ///   - serialNumber: The serial number of this certificate.
+    ///   - publicKey: The public key associated with this certificate.
+    ///   - notValidBefore: The date before which this certificate is not valid.
+    ///   - notValidAfter: The date after which this certificate is not valid.
+    ///   - issuer: The ``DistinguishedName`` of the issuer of this certificate.
+    ///   - subject: The ``DistinguishedName`` of the subject of this certificate.
+    ///   - extensions: The extensions on this certificate.
+    ///   - issuerPrivateKey: The private key to use to sign this certificate.
+    @inlinable
+    public init(
+        version: Version,
+        serialNumber: SerialNumber,
+        publicKey: PublicKey,
+        notValidBefore: Date,
+        notValidAfter: Date,
+        issuer: DistinguishedName,
+        subject: DistinguishedName,
+        extensions: Extensions,
+        issuerPrivateKey: PrivateKey
+    ) throws {
+        try self.init(
+            version: version,
+            serialNumber: serialNumber,
+            publicKey: publicKey,
+            notValidBefore: notValidBefore,
+            notValidAfter: notValidAfter,
+            issuer: issuer,
+            subject: subject,
+            signatureAlgorithm: issuerPrivateKey.defaultSignatureAlgorithm,
+            extensions: extensions,
+            issuerPrivateKey: issuerPrivateKey
+        )
+    }
+
     @inlinable
     init(
         tbsCertificate: TBSCertificate,
@@ -227,10 +280,13 @@ public struct Certificate {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate: Hashable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate: Sendable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate: CustomStringConvertible {
     public var description: String {
         """
@@ -249,6 +305,7 @@ extension Certificate: CustomStringConvertible {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate: DERImplicitlyTaggable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
@@ -298,6 +355,7 @@ extension DER.Serializer {
 
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate: PEMRepresentable {
     @inlinable
     public static var defaultPEMDiscriminator: String { "CERTIFICATE" }
@@ -305,6 +363,8 @@ extension Certificate: PEMRepresentable {
 
 #if canImport(Security)
 import Security
+
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate {
     /// Creates an instance of ``Certificate`` from ``Security/SecCertificate``.
     /// To create an instance of ``Security/SecCertificate``, use ``Security/SecCertificate/makeWithCertificate(_:)`` instead.
@@ -314,6 +374,7 @@ extension Certificate {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SecCertificate {
     /// Creates an instance of ``Security/SecCertificate`` from ``Certificate``.
     /// To create an instance of ``Certificate``, use ``Certificate/init(_:)`` instead.

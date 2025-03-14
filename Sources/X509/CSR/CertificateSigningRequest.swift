@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import SwiftASN1
 
 /// A representation of a PKCS#10 Certificate Signing Request (CSR).
@@ -20,6 +24,7 @@ import SwiftASN1
 /// Certificate Signing Requests are used to encapsulate information that an end-entity would like
 /// encapsulated in a certificate. They are typically processed by Certificate Authorities and turned
 /// into certificates signed by that CA.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct CertificateSigningRequest {
     /// The version of this CSR.
     ///
@@ -145,6 +150,35 @@ public struct CertificateSigningRequest {
         self.signatureBytes = try DER.Serializer.serialized(element: ASN1BitString(self.signature))[...]
     }
 
+    /// Construct a CSR for a specific private key.
+    ///
+    /// This API can be used to construct a certificate signing request that can be passed to a certificate
+    /// authority. It will correctly generate a signature over the request.
+    ///
+    /// A default signature algorithm to use for the signature of this CSR is automatically chosen based on
+    /// the type of the private key.
+    ///
+    /// - Parameters:
+    ///   - version: The CSR version.
+    ///   - subject: The ``DistinguishedName`` of the subject of this CSR
+    ///   - privateKey: The private key associated with this CSR.
+    ///   - attributes: The attributes associated with this CSR
+    @inlinable
+    public init(
+        version: Version,
+        subject: DistinguishedName,
+        privateKey: Certificate.PrivateKey,
+        attributes: Attributes
+    ) throws {
+        try self.init(
+            version: version,
+            subject: subject,
+            privateKey: privateKey,
+            attributes: attributes,
+            signatureAlgorithm: privateKey.defaultSignatureAlgorithm
+        )
+    }
+
     @inlinable
     internal init(
         info: CertificationRequestInfo,
@@ -166,10 +200,13 @@ public struct CertificateSigningRequest {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension CertificateSigningRequest: Hashable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension CertificateSigningRequest: Sendable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension CertificateSigningRequest: CustomStringConvertible {
     @inlinable
     public var description: String {
@@ -178,6 +215,7 @@ extension CertificateSigningRequest: CustomStringConvertible {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension CertificateSigningRequest: DERImplicitlyTaggable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
@@ -217,6 +255,7 @@ extension CertificateSigningRequest: DERImplicitlyTaggable {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension CertificateSigningRequest: PEMRepresentable {
     @inlinable
     public static var defaultPEMDiscriminator: String {

@@ -12,12 +12,20 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import SwiftASN1
 #if os(Windows)
 import WinSDK
 #elseif canImport(Android)
 import Android
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
 #endif
 
 /// A ``VerifierPolicy`` that validates that the leaf certificate is authoritative
@@ -53,6 +61,7 @@ public struct ServerIdentityPolicy {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ServerIdentityPolicy: VerifierPolicy {
     @inlinable
     public var verifyingCriticalExtensions: [ASN1ObjectIdentifier] {
@@ -244,6 +253,7 @@ extension ServerIdentityPolicy.IPAddress {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate {
     /// Validates that a given leaf certificate is valid for a service.
     ///

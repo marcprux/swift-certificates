@@ -21,8 +21,8 @@ import SwiftASN1
 ///   subjectKeyIdentifier [0] SubjectKeyIdentifier }
 ///  ```
 @usableFromInline
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 enum CMSSignerIdentifier: DERParseable, BERParseable, DERSerializable, BERSerializable, Hashable, Sendable {
-
     @usableFromInline
     static let skiIdentifier = ASN1Identifier(tagWithNumber: 0, tagClass: .contextSpecific)
 
@@ -36,13 +36,14 @@ enum CMSSignerIdentifier: DERParseable, BERParseable, DERSerializable, BERSerial
             self = try .issuerAndSerialNumber(.init(derEncoded: node))
 
         case Self.skiIdentifier:
-            self = try DER.explicitlyTagged(
-                node,
-                tagNumber: Self.skiIdentifier.tagNumber,
-                tagClass: Self.skiIdentifier.tagClass
-            ) { node in
-                .subjectKeyIdentifier(.init(keyIdentifier: try ASN1OctetString(derEncoded: node).bytes))
-            }
+            self = try .subjectKeyIdentifier(
+                .init(
+                    keyIdentifier: ASN1OctetString(
+                        derEncoded: node,
+                        withIdentifier: Self.skiIdentifier
+                    ).bytes
+                )
+            )
 
         default:
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -56,11 +57,8 @@ enum CMSSignerIdentifier: DERParseable, BERParseable, DERSerializable, BERSerial
             try issuerAndSerialNumber.serialize(into: &coder)
 
         case .subjectKeyIdentifier(let subjectKeyIdentifier):
-            try coder.serialize(
-                ASN1OctetString(contentBytes: subjectKeyIdentifier.keyIdentifier),
-                explicitlyTaggedWithIdentifier: Self.skiIdentifier
-            )
-
+            try ASN1OctetString(contentBytes: subjectKeyIdentifier.keyIdentifier)
+                .serialize(into: &coder, withIdentifier: Self.skiIdentifier)
         }
     }
 

@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate {
     /// A representation of a kind of signature algorithm.
     ///
@@ -91,10 +92,13 @@ extension Certificate {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.SignatureAlgorithm: Hashable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.SignatureAlgorithm: Sendable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.SignatureAlgorithm: CustomStringConvertible {
     public var description: String {
         switch self {
@@ -112,6 +116,8 @@ extension Certificate.SignatureAlgorithm: CustomStringConvertible {
             return "SignatureAlgorithm.sha384WithRSAEncryption"
         case .sha512WithRSAEncryption:
             return "SignatureAlgorithm.sha512WithRSAEncryption"
+        case .ed25519:
+            return "SignatureAlgorithm.ed25519"
         default:
             return "SignatureAlgorithm(\(self._algorithmIdentifier))"
         }
@@ -119,6 +125,7 @@ extension Certificate.SignatureAlgorithm: CustomStringConvertible {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension AlgorithmIdentifier {
     @inlinable
     init(_ signatureAlgorithm: Certificate.SignatureAlgorithm) {
@@ -134,7 +141,7 @@ extension AlgorithmIdentifier {
             self = .sha256UsingNil
         case .ecdsaWithSHA384, .sha384WithRSAEncryption:
             self = .sha384UsingNil
-        case .ecdsaWithSHA512, .sha512WithRSAEncryption:
+        case .ecdsaWithSHA512, .sha512WithRSAEncryption, .ed25519:
             self = .sha512UsingNil
         case .sha1WithRSAEncryption:
             self = .sha1

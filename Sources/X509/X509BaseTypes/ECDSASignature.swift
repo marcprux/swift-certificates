@@ -11,7 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import SwiftASN1
 import Crypto
 
@@ -72,21 +76,25 @@ struct ECDSASignature: DERImplicitlyTaggable, Hashable, Sendable {
     }
 
     @inlinable
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     init(_ sig: P256.Signing.ECDSASignature) {
         self = .init(rawSignatureBytes: sig.rawRepresentation)
     }
 
     @inlinable
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     init(_ sig: P384.Signing.ECDSASignature) {
         self = .init(rawSignatureBytes: sig.rawRepresentation)
     }
 
     @inlinable
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     init(_ sig: P521.Signing.ECDSASignature) {
         self = .init(rawSignatureBytes: sig.rawRepresentation)
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing.ECDSASignature {
     @inlinable
     init?(_ signature: ECDSASignature) {
@@ -114,6 +122,7 @@ extension P256.Signing.ECDSASignature {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing.ECDSASignature {
     @inlinable
     init?(_ signature: ECDSASignature) {
@@ -141,6 +150,7 @@ extension P384.Signing.ECDSASignature {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing.ECDSASignature {
     @inlinable
     init?(_ signature: ECDSASignature) {

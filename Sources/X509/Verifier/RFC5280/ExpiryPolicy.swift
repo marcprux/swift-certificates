@@ -12,11 +12,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import SwiftASN1
 
 /// A sub-policy of the ``RFC5280Policy`` that polices expiry.
 @usableFromInline
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct ExpiryPolicy: VerifierPolicy {
     @usableFromInline
     let verifyingCriticalExtensions: [ASN1ObjectIdentifier] = []

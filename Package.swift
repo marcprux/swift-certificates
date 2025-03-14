@@ -18,12 +18,6 @@ import class Foundation.ProcessInfo
 
 let package = Package(
     name: "swift-certificates",
-    platforms: [
-        .macOS(.v10_15),
-        .iOS(.v13),
-        .watchOS(.v6),
-        .tvOS(.v13),
-    ],
     products: [
         .library(
             name: "X509",
@@ -81,7 +75,7 @@ let package = Package(
 // we can depend on local versions of our dependencies instead of fetching them remotely.
 if ProcessInfo.processInfo.environment["SWIFTCI_USE_LOCAL_DEPS"] == nil {
     package.dependencies += [
-        .package(url: "https://github.com/apple/swift-crypto.git", "2.5.0"..<"4.0.0"),
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.11.2"),
         .package(url: "https://github.com/apple/swift-asn1.git", from: "1.1.0"),
     ]
 } else {
@@ -99,11 +93,16 @@ for target in package.targets {
 
 // ---    STANDARD CROSS-REPO SETTINGS DO NOT EDIT   --- //
 for target in package.targets {
-    if target.type != .plugin {
+    switch target.type {
+    case .regular, .test, .executable:
         var settings = target.swiftSettings ?? []
         // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
         settings.append(.enableUpcomingFeature("MemberImportVisibility"))
         target.swiftSettings = settings
+    case .macro, .plugin, .system, .binary:
+        ()  // not applicable
+    @unknown default:
+        ()  // we don't know what to do here, do nothing
     }
 }
 // --- END: STANDARD CROSS-REPO SETTINGS DO NOT EDIT --- //

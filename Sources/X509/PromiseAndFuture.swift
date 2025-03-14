@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 // MARK: - Promise
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 final class Promise<Value: Sendable, Failure: Error> {
     private enum State {
         case unfulfilled(observers: [CheckedContinuation<Result<Value, Failure>, Never>])
@@ -25,19 +26,20 @@ final class Promise<Value: Sendable, Failure: Error> {
 
     fileprivate var result: Result<Value, Failure> {
         get async {
-            self.state.lock()
+            self.state.unsafe.lock()
 
-            switch self.state.unsafeUnlockedValue {
+            switch self.state.unsafe.withValueAssumingLockIsAcquired({ $0 }) {
             case .fulfilled(let result):
-                defer { self.state.unlock() }
+                defer { self.state.unsafe.unlock() }
                 return result
-
             case .unfulfilled(var observers):
                 return await withCheckedContinuation {
                     (continuation: CheckedContinuation<Result<Value, Failure>, Never>) in
                     observers.append(continuation)
-                    self.state.unsafeUnlockedValue = .unfulfilled(observers: observers)
-                    self.state.unlock()
+                    self.state.unsafe.withValueAssumingLockIsAcquired { value in
+                        value = .unfulfilled(observers: observers)
+                    }
+                    self.state.unsafe.unlock()
                 }
             }
         }
@@ -69,8 +71,10 @@ final class Promise<Value: Sendable, Failure: Error> {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Promise: Sendable where Value: Sendable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Promise {
     func succeed(with value: Value) {
         self.fulfil(with: .success(value))
@@ -83,6 +87,7 @@ extension Promise {
 
 // MARK: - Future
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct Future<Value: Sendable, Failure: Error> {
     private let promise: Promise<Value, Failure>
 
@@ -97,8 +102,10 @@ struct Future<Value: Sendable, Failure: Error> {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Future: Sendable where Value: Sendable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Future {
     var value: Value {
         get async throws {
@@ -107,6 +114,7 @@ extension Future {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Future where Failure == Never {
     var value: Value {
         get async {
@@ -115,6 +123,7 @@ extension Future where Failure == Never {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Result where Failure == Never {
     func get() -> Success {
         switch self {

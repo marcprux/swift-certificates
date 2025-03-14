@@ -15,8 +15,13 @@
 import SwiftASN1
 @preconcurrency import Crypto
 import _CryptoExtras
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate {
     /// A public key that can be used with a certificate.
     ///
@@ -96,6 +101,7 @@ extension Certificate {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.PublicKey {
     /// Confirms that `signature` is a valid signature for `certificate`, created by the
     /// private key associated with this public key.
@@ -137,40 +143,28 @@ extension Certificate.PublicKey {
         for bytes: Bytes,
         signatureAlgorithm: Certificate.SignatureAlgorithm
     ) -> Bool {
-        var digest: Digest?
-
-        if let digestAlgorithm = try? AlgorithmIdentifier(digestAlgorithmFor: signatureAlgorithm) {
-            digest = try? Digest.computeDigest(for: bytes, using: digestAlgorithm)
-        }
-
-        switch (self.backing, digest) {
-        case (.p256(let p256), .some(let digest)):
-            return p256.isValidSignature(signature, for: digest)
-        case (.p384(let p384), .some(let digest)):
-            return p384.isValidSignature(signature, for: digest)
-        case (.p521(let p521), .some(let digest)):
-            return p521.isValidSignature(signature, for: digest)
-        case (.rsa(let rsa), .some(let digest)):
-            // For now we don't support RSA PSS, as it's not deployed in the WebPKI.
-            // We could, if there are sufficient user needs.
-            do {
-                let padding = try _RSA.Signing.Padding(forSignatureAlgorithm: signatureAlgorithm)
-                return rsa.isValidSignature(signature, for: digest, padding: padding)
-            } catch {
-                return false
-            }
-        case (.ed25519(let ed25519), .none):
-            return ed25519.isValidSignature(signature, for: bytes)
-        default:
-            return false
+        switch self.backing {
+        case .p256(let p256):
+            return p256.isValidSignature(signature, for: bytes, signatureAlgorithm: signatureAlgorithm)
+        case .p384(let p384):
+            return p384.isValidSignature(signature, for: bytes, signatureAlgorithm: signatureAlgorithm)
+        case .p521(let p521):
+            return p521.isValidSignature(signature, for: bytes, signatureAlgorithm: signatureAlgorithm)
+        case .rsa(let rsa):
+            return rsa.isValidSignature(signature, for: bytes, signatureAlgorithm: signatureAlgorithm)
+        case .ed25519(let ed25519):
+            return ed25519.isValidSignature(signature, for: bytes, signatureAlgorithm: signatureAlgorithm)
         }
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.PublicKey: Hashable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.PublicKey: Sendable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.PublicKey: CustomStringConvertible {
     public var description: String {
         switch self.backing {
@@ -188,6 +182,7 @@ extension Certificate.PublicKey: CustomStringConvertible {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.PublicKey {
     @usableFromInline
     enum BackingPublicKey: Hashable, Sendable {
@@ -238,6 +233,7 @@ extension Certificate.PublicKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SubjectPublicKeyInfo {
     @inlinable
     init(_ publicKey: Certificate.PublicKey) {
@@ -267,6 +263,7 @@ extension SubjectPublicKeyInfo {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.PublicKey {
     /// The byte array of the public key used in the certificate.
     ///
@@ -277,21 +274,7 @@ extension Certificate.PublicKey {
     }
 }
 
-extension _RSA.Signing.Padding {
-    @inlinable
-    init(forSignatureAlgorithm signatureAlgorithm: Certificate.SignatureAlgorithm) throws {
-        switch signatureAlgorithm {
-        case .sha1WithRSAEncryption, .sha256WithRSAEncryption, .sha384WithRSAEncryption, .sha512WithRSAEncryption:
-            self = .insecurePKCS1v1_5
-        default:
-            // Either this is RSA PSS, or we hit a bug. Either way, unsupported.
-            throw CertificateError.unsupportedSignatureAlgorithm(
-                reason: "Unable to determine RSA padding mode for \(signatureAlgorithm)"
-            )
-        }
-    }
-}
-
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing.PublicKey {
     /// Create a P256 Public Key from a given ``Certificate/PublicKey-swift.struct``.
     ///
@@ -307,6 +290,7 @@ extension P256.Signing.PublicKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing.PublicKey {
     /// Create a P384 Public Key from a given ``Certificate/PublicKey-swift.struct``.
     ///
@@ -322,6 +306,7 @@ extension P384.Signing.PublicKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing.PublicKey {
     /// Create a P521 Public Key from a given ``Certificate/PublicKey-swift.struct``.
     ///
@@ -337,6 +322,7 @@ extension P521.Signing.PublicKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.Signing.PublicKey {
     /// Create an RSA Public Key from a given ``Certificate/PublicKey-swift.struct``.
     ///
@@ -352,6 +338,7 @@ extension _RSA.Signing.PublicKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519.Signing.PublicKey {
     /// Create a Curve25519 Public Key from a given ``Certificate/PublicKey-swift.struct``.
     ///
@@ -367,6 +354,7 @@ extension Curve25519.Signing.PublicKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.PublicKey: PEMParseable, PEMSerializable {
     @inlinable
     public static var defaultPEMDiscriminator: String {
@@ -374,6 +362,7 @@ extension Certificate.PublicKey: PEMParseable, PEMSerializable {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate.PublicKey: DERImplicitlyTaggable {
     @inlinable
     public static var defaultIdentifier: SwiftASN1.ASN1Identifier {

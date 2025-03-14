@@ -14,7 +14,9 @@
 
 import SwiftASN1
 import Crypto
-#if canImport(Darwin) || swift(>=5.9.1)
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#elseif canImport(Darwin) || swift(>=5.9.1)
 import Foundation
 #else
 @preconcurrency import Foundation
@@ -23,6 +25,7 @@ import Foundation
 // Swift CI has implicit concurrency disabled
 import _Concurrency
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public protocol OCSPRequester: Sendable {
     /// Called with an OCSP Request.
     ///
@@ -82,6 +85,7 @@ extension ASN1ObjectIdentifier {
     static let sha1NoSign: Self = [1, 3, 14, 3, 2, 26]
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct OCSPResponderSigningPolicy: VerifierPolicy {
     let verifyingCriticalExtensions: [ASN1ObjectIdentifier] = []
 
@@ -120,6 +124,7 @@ struct OCSPResponderSigningPolicy: VerifierPolicy {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 enum OCSPRequestHashAlgorithm {
     case insecureSha1
     // we can't yet enable sha256 by default but we want in the future
@@ -180,6 +185,7 @@ public struct OCSPFailureMode: Hashable, Sendable {
     var storage: Storage
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct OCSPVerifierPolicy<Requester: OCSPRequester>: VerifierPolicy {
     public let verifyingCriticalExtensions: [ASN1ObjectIdentifier] = []
 
@@ -245,6 +251,7 @@ public struct OCSPVerifierPolicy<Requester: OCSPRequester>: VerifierPolicy {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension OCSPVerifierPolicy.Storage {
 
     /// Returns `.meetsPolicy` if the `failureMode` is set to `.soft`.
@@ -538,6 +545,7 @@ extension OCSPVerifierPolicy.Storage {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension OCSPCertID {
     init(hashAlgorithm: OCSPRequestHashAlgorithm, certificate: Certificate, issuer: Certificate) throws {
         self.init(
@@ -549,6 +557,7 @@ extension OCSPCertID {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension OCSPRequest {
     init(certID: OCSPCertID, nonce: OCSPNonce?) throws {
         self.init(
@@ -567,6 +576,7 @@ extension OCSPRequest {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension OCSPResponseData {
     /// 1 hour to address time zone bugs and 15 min for clock skew of the responder/requester
     static let defaultTrustTimeLeeway: TimeInterval = 4500.0
@@ -588,6 +598,7 @@ extension OCSPResponseData {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension OCSPSingleResponse {
 
     func verifyTime(
@@ -624,6 +635,7 @@ extension OCSPSingleResponse {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Certificate {
     fileprivate func matches(_ responderID: ResponderID) -> Bool {
         switch responderID {
@@ -641,6 +653,7 @@ extension Certificate {
 ///   - maxDuration: max execution duration in seconds of `operation`
 ///   - operation: the task to start and cancel after `maxDuration` seconds
 /// - Returns: the result of `operation`
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 private func withTimeout<Result: Sendable>(
     _ maxDuration: TimeInterval,
     operation: @escaping @Sendable () async -> Result
